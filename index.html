@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="ja"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline' https://accounts.google.com https://www.gstatic.com; style-src 'self' 'unsafe-inline' https://accounts.google.com https://www.gstatic.com; connect-src https://script.google.com https://script.googleusercontent.com https://accounts.google.com; frame-src https://accounts.google.com; img-src 'self' data: https:; base-uri 'none'; form-action 'none'">
+<title>カード支出管理</title>
+<style>
+:root{--bg:#0e1412;--pn:#151d1a;--ln:#26332e;--tx:#e6efe9;--mu:#7c8b85;--ac:#2fd3b0;--wn:#e5484d}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:14px/1.6 "Noto Sans JP",system-ui,sans-serif;padding:16px;max-width:1100px;margin:auto}
+h1{font-size:20px;margin:0 0 12px}h2{font-size:15px;margin:0 0 8px;font-weight:600}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
+input,select,button{background:var(--pn);color:var(--tx);border:1px solid var(--ln);border-radius:6px;padding:6px 10px;font:inherit}
+button{cursor:pointer;border-color:var(--ac);color:var(--ac)}button:focus-visible,input:focus-visible{outline:2px solid var(--ac)}
+.pn{background:var(--pn);border:1px solid var(--ln);border-radius:8px;padding:12px;margin-bottom:12px}
+.kp{display:flex;flex-wrap:wrap;gap:20px}.kp b{display:block;font-size:22px}.kp span{color:var(--mu);font-size:12px}
+table{width:100%;border-collapse:collapse}td,th{padding:4px 8px;border-bottom:1px solid var(--ln);text-align:right}td:first-child,th:first-child{text-align:left}
+.up{color:var(--wn)}.dn{color:var(--ac)}#msg{color:var(--mu)}.sc{overflow-x:auto}#app{display:none}
+</style>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="https://www.gstatic.com/charts/loader.js"></script></head>
+<body>
+<h1>カード支出管理</h1>
+<div id="login" class="pn"><p>Googleアカウントでログインしてください。</p><div id="gbtn"></div><p id="lmsg" style="color:var(--mu)"></p></div>
+<div id="app">
+<div class="bar">
+  <label>期間 <input type="month" id="from"> 〜 <input type="month" id="to"></label>
+  <button id="bLoad">表示</button>
+  <input type="file" id="f" accept=".pdf">
+  <button id="bImp">明細を取り込む</button>
+  <button id="bRecat">再分類</button>
+  <button id="bOut">ログアウト</button>
+  <span id="msg"></span>
+</div>
+<div class="pn kp" id="kp"></div>
+<div class="pn sc"><h2>支出の流れ(カテゴリ → 区分 → 総支出)</h2><div id="sk" style="min-width:640px;height:380px"></div></div>
+<div class="pn sc"><h2>月別の推移</h2><div id="mc" style="min-width:640px;height:300px"></div><table id="mt"></table></div>
+<div class="pn"><h2>給与と目標貯金</h2>
+  <div class="bar"><label>月給 <input id="sal" type="number" step="1000"></label><label>目標貯金/月 <input id="goal" type="number" step="1000"></label><button id="bSv">保存</button></div>
+  <div id="room"></div></div>
+<div class="pn"><h2>AIの節約提案</h2>
+  <div class="bar"><button id="bAi">提案を作成</button><span style="color:var(--mu);font-size:12px">送信するのはカテゴリ別の集計値のみ</span></div>
+  <div id="ai" style="white-space:pre-wrap"></div></div>
+<div class="pn"><h2>未分類の店名(ルールに追加)</h2><table id="un"></table></div>
+</div>
+<script>
+/* ===== 設定(公開されて問題ない値のみ) ===== */
+const API_URL='https://script.google.com/macros/s/AKfycbzwTHx8Kmm7pDn6TjggpOwbM5h4RsiytfnhXPOAyPXdid9_Io-i0Bs34AL4jItjzv1R9Q/exec';
+const CLIENT_ID='＜OAuthクライアントID＞.apps.googleusercontent.com';
+/* ======================================== */
+const $=i=>document.getElementById(i),yen=n=>'¥'+Math.round(n).toLocaleString();
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const msg=t=>$('msg').textContent=t;
+let token=null,chartsReady=false,unknown=[];
+google.charts.load('current',{packages:['corechart','sankey']});google.charts.setOnLoadCallback(()=>{chartsReady=true;if(token)load()});
+
+async function call(action,...args){
+  const r=await fetch(API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},redirect:'follow',body:JSON.stringify({idToken:token,action,args})});
+  const j=await r.json();
+  if(!j.ok){if(j.error==='unauthorized')logout('ログインの期限切れ、または許可されていないアカウントです');throw new Error(j.error)}
+  return j.data}
+
+function initGsi(){
+  if(!window.google||!google.accounts){return setTimeout(initGsi,200)}
+  google.accounts.id.initialize({client_id:CLIENT_ID,callback:r=>{token=r.credential;$('login').style.display='none';$('app').style.display='block';if(chartsReady)load()},auto_select:true});
+  google.accounts.id.renderButton($('gbtn'),{theme:'filled_black',size:'large',locale:'ja'});
+}
+function logout(t){token=null;$('app').style.display='none';$('login').style.display='block';$('lmsg').textContent=t||'';if(window.google&&google.accounts)google.accounts.id.disableAutoSelect()}
+initGsi();
+
+const d=new Date();$('to').value=d.toISOString().slice(0,7);
+const p0=new Date(d.getFullYear(),d.getMonth()-5,1);$('from').value=p0.getFullYear()+'-'+String(p0.getMonth()+1).padStart(2,'0');
+
+async function load(){if(!chartsReady||!token)return;msg('読み込み中…');
+  try{draw(await call('getData',$('from').value,$('to').value));msg('')}catch(e){msg('読み込みに失敗しました')}}
+
+function draw(r){
+  const tot=r.cats.reduce((a,x)=>a+x.v,0),oth=r.cats.filter(x=>x.t==='別枠').reduce((a,x)=>a+x.v,0);
+  $('kp').innerHTML=`<div><b>${yen(tot)}</b><span>総支出(別枠を含む)</span></div><div><b>${yen(tot-oth)}</b><span>通常支出</span></div><div><b>${yen(oth)}</b><span>別枠(ローン・利息・分割)</span></div>`;
+  const rows=[],kind={};
+  r.cats.forEach(x=>{rows.push([x.c,x.t,x.v]);kind[x.t]=(kind[x.t]||0)+x.v});
+  Object.keys(kind).forEach(t=>rows.push([t,'総支出',kind[t]]));
+  if(rows.length){const dt=new google.visualization.DataTable();
+    dt.addColumn('string','from');dt.addColumn('string','to');dt.addColumn('number','w');dt.addRows(rows);
+    new google.visualization.Sankey($('sk')).draw(dt,{sankey:{node:{label:{color:'#e6efe9',fontSize:13},colors:['#2fd3b0','#e5484d','#5b8def','#f0b429','#9b7bea','#4cc38a']},link:{colorMode:'gradient'}}});}
+  const ms=[...new Set(r.months.map(x=>x.m))].sort(),cs=[...new Set(r.months.map(x=>x.c))];
+  const dm=[['月',...cs]];ms.forEach(m=>dm.push([m,...cs.map(c=>(r.months.find(x=>x.m===m&&x.c===c)||{v:0}).v)]));
+  if(ms.length)new google.visualization.ColumnChart($('mc')).draw(google.visualization.arrayToDataTable(dm),{isStacked:true,backgroundColor:'transparent',legend:{textStyle:{color:'#e6efe9'}},hAxis:{textStyle:{color:'#7c8b85'}},vAxis:{textStyle:{color:'#7c8b85'},gridlines:{color:'#26332e'}}});
+  let h='<tr><th>月</th><th>合計</th><th>前月比</th></tr>',prev=null;
+  ms.forEach(m=>{const s=r.months.filter(x=>x.m===m).reduce((a,x)=>a+x.v,0),df=prev===null?null:s-prev;
+    h+=`<tr><td>${esc(m)}</td><td>${yen(s)}</td><td class="${df>0?'up':'dn'}">${df===null?'-':(df>0?'+':'')+yen(df)}</td></tr>`;prev=s});
+  $('mt').innerHTML=h;
+  const s=r.settings;$('sal').value=s.salary||'';$('goal').value=s.goal||'';
+  const avg=ms.length?(tot-oth)/ms.length:0,room=(s.salary||0)-(s.goal||0)-avg;
+  $('room').innerHTML=s.salary?`月平均の通常支出 ${yen(avg)} / 使える上限 ${yen((s.salary||0)-(s.goal||0))} → <b class="${room<0?'up':'dn'}">${room<0?'超過 '+yen(-room):'余裕 '+yen(room)}</b>`:'月給を入力すると、目標貯金に対する余裕を表示します。';
+  unknown=r.unknown;
+  $('un').innerHTML=unknown.length?unknown.map((u,i)=>`<tr><td>${esc(u.n)}</td><td>${yen(u.v)}</td><td><input data-c="${i}" placeholder="カテゴリ" size="8"> <select data-t="${i}"><option>変動費</option><option>固定費</option><option>別枠</option></select> <button data-a="${i}">追加</button></td></tr>`).join(''):'<tr><td>未分類はありません</td></tr>';
+}
+$('un').addEventListener('click',async e=>{const i=e.target.dataset.a;if(i===undefined)return;
+  const c=document.querySelector(`[data-c="${i}"]`).value.trim();if(!c)return msg('カテゴリを入力してください');
+  const k=prompt('一致させるキーワード(店名の一部)',unknown[i].n.replace(/^(AP\/|QP\/)+/i,'').slice(0,8));if(!k)return;
+  msg('追加中…');try{await call('addRule',k,c,document.querySelector(`[data-t="${i}"]`).value);load()}catch(e){msg('追加に失敗しました')}});
+$('bLoad').onclick=load;$('bOut').onclick=()=>logout('');
+$('bRecat').onclick=async()=>{msg('再分類中…');try{await call('recat');load()}catch(e){msg('失敗しました')}};
+$('bSv').onclick=async()=>{try{await call('saveSettings',$('sal').value,$('goal').value);load()}catch(e){msg('保存に失敗しました')}};
+$('bAi').onclick=async()=>{$('ai').textContent='作成中…';try{$('ai').textContent=await call('getAdvice',$('from').value,$('to').value)}catch(e){$('ai').textContent='提案の作成に失敗しました'}};
+$('bImp').onclick=()=>{const f=$('f').files[0];if(!f)return msg('PDFを選んでください');
+  if(f.size>8*1024*1024)return msg('ファイルが大きすぎます(8MBまで)');
+  msg('取り込み中…');const rd=new FileReader();
+  rd.onload=async()=>{try{const x=await call('importPdf',rd.result.split(',')[1]);msg(`取込 ${x.added}件 / 重複スキップ ${x.skipped}件 / 新規キーワード ${x.newKeywords}件`);load()}catch(e){msg('取り込みに失敗しました')}};
+  rd.readAsDataURL(f)};
+</script></body></html>
