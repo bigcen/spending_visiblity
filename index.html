@@ -106,6 +106,6 @@ $('bAi').onclick=async()=>{$('ai').textContent='作成中…';try{$('ai').textCo
 $('bImp').onclick=()=>{const f=$('f').files[0];if(!f)return msg('PDFを選んでください');
   if(f.size>8*1024*1024)return msg('ファイルが大きすぎます(8MBまで)');
   msg('取り込み中…');const rd=new FileReader();
-  rd.onload=async()=>{try{const x=await call('importPdf',rd.result.split(',')[1]);msg(`取込 ${x.added}件 / 重複スキップ ${x.skipped}件 / 新規キーワード ${x.newKeywords}件`);load()}catch(e){msg('取り込みに失敗しました')}};
+  rd.onload=async()=>{try{const x=await call('importPdf',rd.result.split(',')[1]);msg(`取込 ${x.added}件 / 重複スキップ ${x.skipped}件 / 新規キーワード ${x.newKeywords}件`+(x.sample?' ※解析できた行が少ないため、コンソールに先頭部分を出力しました':''));if(x.sample)console.log('PDF解析サンプル:',x.sample);load()}catch(e){msg('取り込みに失敗しました')}};
   rd.readAsDataURL(f)};
 </script></body></html>
