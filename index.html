@@ -7,57 +7,61 @@
 <style>
 :root{--bg:#0e1412;--pn:#151d1a;--ln:#26332e;--tx:#e6efe9;--mu:#7c8b85;--ac:#2fd3b0;--wn:#e5484d}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:14px/1.6 "Noto Sans JP",system-ui,sans-serif;padding:16px;max-width:1100px;margin:auto}
-h1{font-size:20px;margin:0 0 12px}h2{font-size:15px;margin:0 0 8px;font-weight:600}
+h1{font-size:20px;margin:0 0 12px}h2{font-size:15px;margin:0 0 8px;font-weight:600}h3{font-size:13px;margin:12px 0 4px;color:var(--mu);font-weight:600}
 .bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
 input,select,button{background:var(--pn);color:var(--tx);border:1px solid var(--ln);border-radius:6px;padding:6px 10px;font:inherit}
 button{cursor:pointer;border-color:var(--ac);color:var(--ac)}button:focus-visible,input:focus-visible{outline:2px solid var(--ac)}
 .pn{background:var(--pn);border:1px solid var(--ln);border-radius:8px;padding:12px;margin-bottom:12px}
 .kp{display:flex;flex-wrap:wrap;gap:20px}.kp b{display:block;font-size:22px}.kp span{color:var(--mu);font-size:12px}
 table{width:100%;border-collapse:collapse}td,th{padding:4px 8px;border-bottom:1px solid var(--ln);text-align:right}td:first-child,th:first-child{text-align:left}
-.up{color:var(--wn)}.dn{color:var(--ac)}#msg{color:var(--mu)}.sc{overflow-x:auto}#app{display:none}
+.up{color:var(--wn)}.dn{color:var(--ac)}#msg{color:var(--mu)}.sc{overflow-x:auto}#app{display:none}.mu{color:var(--mu);font-size:12px}
+.tag{font-size:11px;border:1px solid var(--ln);border-radius:4px;padding:0 4px;margin-right:6px;color:var(--mu)}
 </style>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="pdf.min.js"></script>
 <script src="https://www.gstatic.com/charts/loader.js"></script></head>
 <body>
-<h1>カード支出管理</h1>
+<h1>カード・銀行 支出管理</h1>
 <div id="login" class="pn"><p>Googleアカウントでログインしてください。</p><div id="gbtn"></div><p id="lmsg" style="color:var(--mu)"></p></div>
 <div id="app">
 <div class="bar">
-  <label>期間(請求月) <input type="month" id="from"> 〜 <input type="month" id="to"></label>
+  <label>期間 <input type="month" id="from"> 〜 <input type="month" id="to"></label>
   <button id="bLoad">表示</button>
   <input type="file" id="f" accept=".pdf">
-  <button id="bImp">明細を取り込む</button>
+  <button id="bImp">PDFを取り込む(カード/銀行 自動判別)</button>
   <button id="bRecat">再分類</button>
   <button id="bOut">ログアウト</button>
   <span id="msg"></span>
 </div>
 <div class="pn kp" id="kp"></div>
+<div class="pn"><h2>支出の目安と見直しポイント</h2><div id="plan"></div></div>
 <div class="pn sc"><h2>支出の流れ(カテゴリ → 区分 → 総支出)</h2><div id="sk" style="min-width:640px;height:380px"></div></div>
-<div class="pn sc"><h2>月別の推移</h2><div id="mc" style="min-width:640px;height:300px"></div><table id="mt"></table></div>
+<div class="pn sc"><h2>月別の推移(支出)</h2><div id="mc" style="min-width:640px;height:300px"></div><table id="mt"></table></div>
+<div class="pn sc"><h2>月次の収支</h2><table id="fl"></table>
+  <p class="mu">カードは請求月、銀行は日付の月で集計。「除外」はカード引落・自己宛振込・大口の現金引出など、二重計上を避けるために支出に含めないものです。</p></div>
 <div class="pn"><h2>給与と目標貯金</h2>
-  <div class="bar"><label>月給 <input id="sal" type="number" step="1000"></label><label>目標貯金/月 <input id="goal" type="number" step="1000"></label><button id="bSv">保存</button></div>
-  <div id="room"></div></div>
+  <div class="bar"><label>月給 <input id="sal" type="number" step="1000" placeholder="空欄=銀行の給与入金の平均"></label><label>目標貯金/月 <input id="goal" type="number" step="1000"></label><button id="bSv">保存</button></div></div>
 <div class="pn"><h2>AIの節約提案</h2>
-  <div class="bar"><button id="bAi">提案を作成</button><span style="color:var(--mu);font-size:12px">送信するのはカテゴリ別の集計値のみ</span></div>
+  <div class="bar"><button id="bAi">提案を作成</button><span class="mu">送信するのはカテゴリ別の集計値のみ(店名・明細・給与の実額は送りません)</span></div>
   <div id="ai" style="white-space:pre-wrap"></div></div>
-<div class="pn"><h2>未分類の店名(ルールに追加)</h2><table id="un"></table></div>
+<div class="pn"><h2>未分類(ルールに追加)</h2><table id="un"></table></div>
 </div>
 <script>
 /* ===== 設定(公開されて問題ない値のみ) ===== */
 const API_URL='https://script.google.com/macros/s/AKfycbzwTHx8Kmm7pDn6TjggpOwbM5h4RsiytfnhXPOAyPXdid9_Io-i0Bs34AL4jItjzv1R9Q/exec';
 const CLIENT_ID='675625482446-s57hjkhr33fgj9bk4e47qaha8bdup1qp.apps.googleusercontent.com';
 /* ======================================== */
-const $=i=>document.getElementById(i),yen=n=>'¥'+Math.round(n).toLocaleString();
+const $=i=>document.getElementById(i),yen=n=>(n<0?'-':'')+'¥'+Math.abs(Math.round(n)).toLocaleString();
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const msg=t=>$('msg').textContent=t;
+const KINDS=['変動費','固定費','別枠','収入','貯蓄','除外'];
 let token=null,chartsReady=false,unknown=[];
 google.charts.load('current',{packages:['corechart','sankey']});google.charts.setOnLoadCallback(()=>{chartsReady=true;if(token)load()});
 
 async function call(action,...args){
   const r=await fetch(API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},redirect:'follow',body:JSON.stringify({idToken:token,action,args})});
   const j=await r.json();
-  if(!j.ok){if(j.error==='unauthorized')logout('ログインの期限切れ、または許可されていないアカウントです');throw new Error(j.error)}
+  if(!j.ok){if(j.error==='unauthorized')logout('ログインの期限切れ、または許可されていないアカウントです');throw new Error(j.detail||j.error)}
   return j.data}
 
 function initGsi(){
@@ -69,14 +73,31 @@ function logout(t){token=null;$('app').style.display='none';$('login').style.dis
 initGsi();
 
 const d=new Date();$('to').value=d.toISOString().slice(0,7);
-const p0=new Date(d.getFullYear(),d.getMonth()-5,1);$('from').value=p0.getFullYear()+'-'+String(p0.getMonth()+1).padStart(2,'0');
+const p0=new Date(d.getFullYear(),d.getMonth()-12,1);$('from').value=p0.getFullYear()+'-'+String(p0.getMonth()+1).padStart(2,'0');
 
 async function load(){if(!chartsReady||!token)return;msg('読み込み中…');
-  try{draw(await call('getData',$('from').value,$('to').value));msg('')}catch(e){msg('読み込みに失敗しました')}}
+  try{const [r,p]=await Promise.all([call('getData',$('from').value,$('to').value),call('getPlan',$('from').value,$('to').value)]);draw(r);drawPlan(p);msg('')}catch(e){console.error(e);msg('読み込みに失敗しました')}}
+
+function drawPlan(p){
+  if(!p.salary){$('plan').innerHTML='月給を保存するか、銀行明細(給与の入金)を取り込むと、支出の目安を表示します。';return}
+  const over=p.gap>0,rows=(a)=>a.map(x=>`<tr><td>${esc(x.c)}</td><td>${yen(x.v)}</td></tr>`).join('');
+  $('plan').innerHTML=`<table>
+  <tr><td>月給(${esc(p.salarySource)})</td><td>${yen(p.salary)}</td></tr>
+  <tr><td>目標貯金</td><td>${yen(-p.goal)}</td></tr>
+  <tr><td>使える額</td><td>${yen(p.allowance)}</td></tr>
+  <tr><td>固定費(銀行+カード)</td><td>${yen(-p.fixedT)}</td></tr>
+  <tr><td>別枠(分割・ローン・利息)</td><td>${yen(-p.extraT)}</td></tr>
+  <tr><td><b>変動費に使える上限</b></td><td><b>${yen(p.varBudget)}</b></td></tr>
+  <tr><td>変動費の実績</td><td>${yen(p.variT)}</td></tr>
+  <tr><td><b>${over?'超過(削減が必要)':'余裕'}</b></td><td class="${over?'up':'dn'}"><b>${yen(Math.abs(p.gap))}</b></td></tr></table>
+  <h3>変動費: 実績と目安(削減は「必需」カテゴリを小さめに配分)</h3>
+  <table><tr><th>カテゴリ</th><th>月あたり実績</th><th>目安上限</th><th>削減目安</th></tr>${p.vari.map(x=>`<tr><td>${esc(x.c)}</td><td>${yen(x.v)}</td><td>${yen(x.target)}</td><td class="${x.cut>0?'up':''}">${x.cut>0?yen(-x.cut):'-'}</td></tr>`).join('')}</table>
+  <h3>固定費(見直し候補)</h3><table>${rows(p.fixed)||'<tr><td>なし</td></tr>'}</table>
+  <p class="mu">集計: カード${p.nCard}か月 / 銀行${p.nBank}か月の月平均(取引の少ない月は除外)。</p>`}
 
 function draw(r){
-  const tot=r.cats.reduce((a,x)=>a+x.v,0),oth=r.cats.filter(x=>x.t==='別枠').reduce((a,x)=>a+x.v,0);
-  $('kp').innerHTML=`<div><b>${yen(tot)}</b><span>総支出(別枠を含む)</span></div><div><b>${yen(tot-oth)}</b><span>通常支出</span></div><div><b>${yen(oth)}</b><span>別枠(ローン・利息・分割)</span></div>`;
+  const tot=r.cats.reduce((a,x)=>a+x.v,0),by=t=>r.cats.filter(x=>x.t===t).reduce((a,x)=>a+x.v,0);
+  $('kp').innerHTML=`<div><b>${yen(tot)}</b><span>支出合計(期間)</span></div><div><b>${yen(by('固定費'))}</b><span>固定費</span></div><div><b>${yen(by('変動費'))}</b><span>変動費</span></div><div><b>${yen(by('別枠'))}</b><span>別枠(分割・ローン・利息)</span></div>`;
   const rows=[],kind={};
   r.cats.forEach(x=>{rows.push([x.c,x.t,x.v]);kind[x.t]=(kind[x.t]||0)+x.v});
   Object.keys(kind).forEach(t=>rows.push([t,'総支出',kind[t]]));
@@ -86,24 +107,24 @@ function draw(r){
   const ms=[...new Set(r.months.map(x=>x.m))].sort(),cs=[...new Set(r.months.map(x=>x.c))];
   const dm=[['月',...cs]];ms.forEach(m=>dm.push([m,...cs.map(c=>(r.months.find(x=>x.m===m&&x.c===c)||{v:0}).v)]));
   if(ms.length)new google.visualization.ColumnChart($('mc')).draw(google.visualization.arrayToDataTable(dm),{isStacked:true,backgroundColor:'transparent',legend:{textStyle:{color:'#e6efe9'}},hAxis:{textStyle:{color:'#7c8b85'}},vAxis:{textStyle:{color:'#7c8b85'},gridlines:{color:'#26332e'}}});
-  let h='<tr><th>請求月</th><th>合計</th><th>前月比</th></tr>',prev=null;
+  let h='<tr><th>月</th><th>支出合計</th><th>前月比</th></tr>',prev=null;
   ms.forEach(m=>{const s=r.months.filter(x=>x.m===m).reduce((a,x)=>a+x.v,0),df=prev===null?null:s-prev;
     h+=`<tr><td>${esc(m)}</td><td>${yen(s)}</td><td class="${df>0?'up':'dn'}">${df===null?'-':(df>0?'+':'')+yen(df)}</td></tr>`;prev=s});
   $('mt').innerHTML=h;
+  $('fl').innerHTML='<tr><th>月</th><th>収入</th><th>固定費</th><th>変動費</th><th>別枠</th><th>貯蓄・投資</th><th>除外</th></tr>'+r.flows.map(f=>`<tr><td>${esc(f.m)}</td><td>${yen(f['収入'])}</td><td>${yen(f['固定費'])}</td><td>${yen(f['変動費'])}</td><td>${yen(f['別枠'])}</td><td>${yen(f['貯蓄'])}</td><td>${yen(f['除外'])}</td></tr>`).join('');
   const s=r.settings;$('sal').value=s.salary||'';$('goal').value=s.goal||'';
-  const avg=ms.length?tot/ms.length:0,room=(s.salary||0)-(s.goal||0)-avg;
-  $('room').innerHTML=s.salary?`月平均の支出(別枠込み) ${yen(avg)} / 使える上限 ${yen((s.salary||0)-(s.goal||0))} → <b class="${room<0?'up':'dn'}">${room<0?'超過 '+yen(-room):'余裕 '+yen(room)}</b>`:'月給を入力すると、目標貯金に対する余裕を表示します。';
   unknown=r.unknown;
-  $('un').innerHTML=unknown.length?unknown.map((u,i)=>`<tr><td>${esc(u.n)}</td><td>${yen(u.v)}</td><td><input data-c="${i}" placeholder="カテゴリ" size="8"> <select data-t="${i}"><option>変動費</option><option>固定費</option><option>別枠</option></select> <button data-a="${i}">追加</button></td></tr>`).join(''):'<tr><td>未分類はありません</td></tr>';
+  $('un').innerHTML=unknown.length?unknown.map((u,i)=>`<tr><td><span class="tag">${u.s==='bank'?'銀行':'カード'}</span>${esc(u.n)}</td><td>${yen(u.v)}</td><td><input data-c="${i}" placeholder="カテゴリ" size="8"> <select data-t="${i}">${KINDS.map(k=>`<option>${k}</option>`).join('')}</select> <button data-a="${i}">追加</button></td></tr>`).join(''):'<tr><td>未分類はありません</td></tr>';
 }
 $('un').addEventListener('click',async e=>{const i=e.target.dataset.a;if(i===undefined)return;
   const c=document.querySelector(`[data-c="${i}"]`).value.trim();if(!c)return msg('カテゴリを入力してください');
-  const k=prompt('一致させるキーワード(店名の一部)',unknown[i].n.replace(/^(AP\/|QP\/)+/i,'').slice(0,8));if(!k)return;
-  msg('追加中…');try{await call('addRule',k,c,document.querySelector(`[data-t="${i}"]`).value);load()}catch(e){msg('追加に失敗しました')}});
+  const u=unknown[i],k=prompt('一致させるキーワード(店名・内容の一部)',u.n.replace(/^(AP\/|QP\/)+/i,'').replace(/^(振込|口座振替)\d\s*/,'').replace(/\s/g,'').slice(0,8));if(!k)return;
+  msg('追加中…');try{await call('addRule',k,c,document.querySelector(`[data-t="${i}"]`).value,u.s);load()}catch(e){msg('追加に失敗しました')}});
 $('bLoad').onclick=load;$('bOut').onclick=()=>logout('');
 $('bRecat').onclick=async()=>{msg('再分類中…');try{await call('recat');load()}catch(e){msg('失敗しました')}};
 $('bSv').onclick=async()=>{try{await call('saveSettings',$('sal').value,$('goal').value);load()}catch(e){msg('保存に失敗しました')}};
-$('bAi').onclick=async()=>{$('ai').textContent='作成中…';try{$('ai').textContent=await call('getAdvice',$('from').value,$('to').value)}catch(e){$('ai').textContent='提案の作成に失敗しました'}};
+$('bAi').onclick=async()=>{$('ai').textContent='作成中…';try{$('ai').textContent=await call('getAdvice',$('from').value,$('to').value)}catch(e){$('ai').textContent='提案の作成に失敗しました: '+e.message}};
+
 /* ===== PDF解析(ブラウザ内で完結。PDFそのものはどこにも送信しません) ===== */
 function p2_(n){return n<10?'0'+n:''+n}
 function parseRows_(raw) {
@@ -145,28 +166,70 @@ function parseRows_(raw) {
 }
 
 
-async function pdfText(file){
-  pdfjsLib.GlobalWorkerOptions.workerSrc='pdf.worker.min.js';
-  const data=new Uint8Array(await file.arrayBuffer());
-  const doc=await pdfjsLib.getDocument({data,cMapUrl:'./',cMapPacked:true,isEvalSupported:false}).promise;
-  const out=[];
-  for(let p=1;p<=doc.numPages;p++){
-    const tc=await (await doc.getPage(p)).getTextContent();
-    const items=tc.items.filter(i=>i.str&&i.str.trim()).map(i=>({s:/^[0-9０-９ ,，]+$/.test(i.str.trim())?i.str.replace(/ /g,''):i.str,x:i.transform[4],y:i.transform[5],w:i.width}));
+
+function detect(pages){const t=pages.flat().map(i=>i.s).join('').replace(/\s/g,'');
+  return /差引残高/.test(t)&&/お預かり/.test(t)?'bank':/ご利用明細|ご利用店名/.test(t)?'card':'unknown'}
+// カード: 座標で行を組み直し、数字の中の空白を除く
+function cardText(pages){const out=[];
+  pages.forEach(its=>{
+    const items=its.map(i=>({s:/^[0-9０-９ ,，]+$/.test(i.s.trim())?i.s.replace(/ /g,''):i.s,x:i.x,y:i.y,w:i.w}));
     items.sort((a,b)=>b.y-a.y||a.x-b.x);
     const lines=[];
     items.forEach(it=>{const L=lines[lines.length-1];if(L&&Math.abs(L.y-it.y)<3)L.t.push(it);else lines.push({y:it.y,t:[it]})});
     lines.forEach(L=>{L.t.sort((a,b)=>a.x-b.x);out.push(L.t.reduce((a,i,k)=>k===0?i.s:a+((i.x-(L.t[k-1].x+L.t[k-1].w))>1.5?' ':'')+i.s,''))});
-  }
-  return out.join('\n')}
+  });return out.join('\n')}
+// 銀行(三菱UFJ Eco通帳): 出力順のまま読み、金額の列位置で出金/入金/残高を判定。残高の連続性で検算
+function parseBank_(pages){
+  const toks=[];
+  pages.forEach((its,pi)=>its.forEach(it=>{
+    const s=it.s.replace(/\s+/g,'').normalize('NFKC');
+    if(!s||s==='円'||it.y<60||(pi===0&&it.y>=570))return;
+    toks.push({s,x:it.x});
+  }));
+  const ei=toks.findIndex(t=>t.s.indexOf('お預り金額合計')>=0);
+  if(ei>=0){let cut=ei;for(let k=ei-1;k>=Math.max(0,ei-4);k--)if(/支店|^普通|^当座/.test(toks[k].s))cut=k;toks.length=cut}
+  const rows=[];let cur=null;
+  toks.forEach(t=>{
+    if(/^\d{4}年$/.test(t.s)){if(cur)rows.push(cur);cur={y:+t.s.slice(0,4),d:null,out:0,inn:0,bal:null,desc:[]};return}
+    if(!cur)return;
+    const m=t.s.match(/^(\d{1,2})月(\d{1,2})日$/);
+    if(m){cur.d=[+m[1],+m[2]];return}
+    if(/^[\d,]+$/.test(t.s)&&t.x<250){const v=+t.s.replace(/,/g,'');if(t.x<190)cur.out=v;else cur.inn=v;return}
+    if(/^[\d,]+$/.test(t.s)&&t.x>=400){cur.bal=+t.s.replace(/,/g,'');return}
+    cur.desc.push(t.s);
+  });
+  if(cur)rows.push(cur);
+  const out=[];let bad=0,chainBad=0;
+  rows.forEach(r=>{
+    if(!r.d||r.bal===null||(!r.out&&!r.inn)){bad++;return}
+    out.push({date:r.y+'-'+p2_(r.d[0])+'-'+p2_(r.d[1]),name:r.desc.join(' '),out:r.out,inn:r.inn,bal:r.bal});
+  });
+  for(let i=1;i<out.length;i++)if(out[i-1].bal+out[i].inn-out[i].out!==out[i].bal)chainBad++;
+  return {rows:out,bad,chainBad};
+}
+async function pdfPages(file){
+  pdfjsLib.GlobalWorkerOptions.workerSrc='pdf.worker.min.js';
+  const data=new Uint8Array(await file.arrayBuffer());
+  const doc=await pdfjsLib.getDocument({data,cMapUrl:'./',cMapPacked:true,isEvalSupported:false}).promise;
+  const pages=[];
+  for(let p=1;p<=doc.numPages;p++){const tc=await (await doc.getPage(p)).getTextContent();
+    pages.push(tc.items.filter(i=>i.str&&i.str.trim()).map(i=>({s:i.str,x:i.transform[4],y:i.transform[5],w:i.width})))}
+  return pages}
+const res=x=>`取込 ${x.added}件 / 重複スキップ ${x.skipped}件`+(x.similar?` / 同名・同額で日付が違うため追加 ${x.similar}件`:'')+` / 新規キーワード ${x.newKeywords}件`;
 $('bImp').onclick=async()=>{const f=$('f').files[0];if(!f)return msg('PDFを選んでください');
   if(f.size>8*1024*1024)return msg('ファイルが大きすぎます(8MBまで)');
   msg('読み取り中…');
   try{
-    const r=parseRows_(await pdfText(f));
-    if(!r.rows.length)return msg('明細を読み取れませんでした');
-    msg(`${r.rows.length}件を読み取り、取り込み中…`);
-    const x=await call('importRows',r.rows);
-    msg(`取込 ${x.added}件 / 重複スキップ ${x.skipped}件 / 新規キーワード ${x.newKeywords}件`);load();
+    const pages=await pdfPages(f),kind=detect(pages);
+    if(kind==='bank'){
+      const r=parseBank_(pages);if(!r.rows.length)return msg('銀行明細を読み取れませんでした');
+      const x=await call('importBank',r.rows);
+      msg('銀行: '+res(x)+' / 残高チェック '+(r.chainBad||r.bad?`不一致${r.chainBad}件・読取不可${r.bad}件`:'OK'));
+    }else if(kind==='card'){
+      const r=parseRows_(cardText(pages));if(!r.rows.length)return msg('明細を読み取れませんでした');
+      msg(`${r.rows.length}件を読み取り、取り込み中…`);
+      const x=await call('importRows',r.rows);msg('カード: '+res(x));
+    }else return msg('対応していないPDFです(カード利用明細・三菱UFJ銀行の入出金明細に対応)');
+    load();
   }catch(e){console.error(e);msg('取り込みに失敗しました')}};
 </script></body></html>
