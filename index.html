@@ -24,7 +24,7 @@ table{width:100%;border-collapse:collapse}td,th{padding:4px 8px;border-bottom:1p
 <div id="login" class="pn"><p>Googleアカウントでログインしてください。</p><div id="gbtn"></div><p id="lmsg" style="color:var(--mu)"></p></div>
 <div id="app">
 <div class="bar">
-  <label>期間 <input type="month" id="from"> 〜 <input type="month" id="to"></label>
+  <label>期間(請求月) <input type="month" id="from"> 〜 <input type="month" id="to"></label>
   <button id="bLoad">表示</button>
   <input type="file" id="f" accept=".pdf">
   <button id="bImp">明細を取り込む</button>
@@ -86,13 +86,13 @@ function draw(r){
   const ms=[...new Set(r.months.map(x=>x.m))].sort(),cs=[...new Set(r.months.map(x=>x.c))];
   const dm=[['月',...cs]];ms.forEach(m=>dm.push([m,...cs.map(c=>(r.months.find(x=>x.m===m&&x.c===c)||{v:0}).v)]));
   if(ms.length)new google.visualization.ColumnChart($('mc')).draw(google.visualization.arrayToDataTable(dm),{isStacked:true,backgroundColor:'transparent',legend:{textStyle:{color:'#e6efe9'}},hAxis:{textStyle:{color:'#7c8b85'}},vAxis:{textStyle:{color:'#7c8b85'},gridlines:{color:'#26332e'}}});
-  let h='<tr><th>月</th><th>合計</th><th>前月比</th></tr>',prev=null;
+  let h='<tr><th>請求月</th><th>合計</th><th>前月比</th></tr>',prev=null;
   ms.forEach(m=>{const s=r.months.filter(x=>x.m===m).reduce((a,x)=>a+x.v,0),df=prev===null?null:s-prev;
     h+=`<tr><td>${esc(m)}</td><td>${yen(s)}</td><td class="${df>0?'up':'dn'}">${df===null?'-':(df>0?'+':'')+yen(df)}</td></tr>`;prev=s});
   $('mt').innerHTML=h;
   const s=r.settings;$('sal').value=s.salary||'';$('goal').value=s.goal||'';
-  const avg=ms.length?(tot-oth)/ms.length:0,room=(s.salary||0)-(s.goal||0)-avg;
-  $('room').innerHTML=s.salary?`月平均の通常支出 ${yen(avg)} / 使える上限 ${yen((s.salary||0)-(s.goal||0))} → <b class="${room<0?'up':'dn'}">${room<0?'超過 '+yen(-room):'余裕 '+yen(room)}</b>`:'月給を入力すると、目標貯金に対する余裕を表示します。';
+  const avg=ms.length?tot/ms.length:0,room=(s.salary||0)-(s.goal||0)-avg;
+  $('room').innerHTML=s.salary?`月平均の支出(別枠込み) ${yen(avg)} / 使える上限 ${yen((s.salary||0)-(s.goal||0))} → <b class="${room<0?'up':'dn'}">${room<0?'超過 '+yen(-room):'余裕 '+yen(room)}</b>`:'月給を入力すると、目標貯金に対する余裕を表示します。';
   unknown=r.unknown;
   $('un').innerHTML=unknown.length?unknown.map((u,i)=>`<tr><td>${esc(u.n)}</td><td>${yen(u.v)}</td><td><input data-c="${i}" placeholder="カテゴリ" size="8"> <select data-t="${i}"><option>変動費</option><option>固定費</option><option>別枠</option></select> <button data-a="${i}">追加</button></td></tr>`).join(''):'<tr><td>未分類はありません</td></tr>';
 }
