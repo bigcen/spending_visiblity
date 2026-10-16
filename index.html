@@ -5,23 +5,30 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline' https://accounts.google.com https://www.gstatic.com; worker-src 'self'; style-src 'self' 'unsafe-inline' https://accounts.google.com https://www.gstatic.com; connect-src 'self' https://script.google.com https://script.googleusercontent.com https://accounts.google.com; frame-src https://accounts.google.com; img-src 'self' data: https:; base-uri 'none'; form-action 'none'">
 <title>カード支出管理</title>
 <style>
-:root{--bg:#0e1412;--pn:#151d1a;--ln:#26332e;--tx:#e6efe9;--mu:#7c8b85;--ac:#2fd3b0;--wn:#e5484d}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:14px/1.6 "Noto Sans JP",system-ui,sans-serif;padding:16px;max-width:1100px;margin:auto}
-h1{font-size:20px;margin:0 0 12px}h2{font-size:15px;margin:0 0 8px;font-weight:600}h3{font-size:13px;margin:12px 0 4px;color:var(--mu);font-weight:600}
+:root{--bg:#f2f2f2;--pn:#fff;--ln:#ececec;--tx:#1f1f1f;--mu:#767676;--ac:#ff0033;--wn:#d9480f;--ok:#1a9d5a}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:14px/1.6 "Noto Sans JP","Hiragino Sans","Yu Gothic UI",system-ui,sans-serif}
+.hd{background:var(--ac);color:#fff;padding:14px 16px;padding-top:calc(14px + env(safe-area-inset-top,0px));position:sticky;top:0;z-index:5}
+.hd h1{font-size:18px;font-weight:700;margin:0 auto;max-width:1100px}
+.wrap{max-width:1100px;margin:0 auto;padding:16px}
+h2{font-size:16px;margin:0 0 10px;font-weight:700}h3{font-size:13px;margin:14px 0 4px;color:var(--mu);font-weight:700}
 .bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
-input,select,button{background:var(--pn);color:var(--tx);border:1px solid var(--ln);border-radius:6px;padding:6px 10px;font:inherit}
-button{cursor:pointer;border-color:var(--ac);color:var(--ac)}button:focus-visible,input:focus-visible{outline:2px solid var(--ac)}
-.pn{background:var(--pn);border:1px solid var(--ln);border-radius:8px;padding:12px;margin-bottom:12px}
-.kp{display:flex;flex-wrap:wrap;gap:20px}.kp b{display:block;font-size:22px}.kp span{color:var(--mu);font-size:12px}
-table{width:100%;border-collapse:collapse}td,th{padding:4px 8px;border-bottom:1px solid var(--ln);text-align:right}td:first-child,th:first-child{text-align:left}
-.up{color:var(--wn)}.dn{color:var(--ac)}#msg{color:var(--mu)}.sc{overflow-x:auto}#app{display:none}.mu{color:var(--mu);font-size:12px}
-.tag{font-size:11px;border:1px solid var(--ln);border-radius:4px;padding:0 4px;margin-right:6px;color:var(--mu)}
+input,select{background:#fff;color:var(--tx);border:1px solid #dcdcdc;border-radius:12px;padding:8px 12px;font:inherit}
+button{cursor:pointer;border:1px solid var(--ac);color:var(--ac);background:#fff;border-radius:999px;padding:8px 16px;font:inherit;font-weight:600}
+#bLoad,#bImp,#bSv,#bAi{background:var(--ac);color:#fff}
+button:hover{opacity:.88}button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+.pn{background:var(--pn);border-radius:16px;padding:16px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.kp{display:flex;flex-wrap:wrap;gap:24px}.kp b{display:block;font-size:24px;font-weight:700}.kp span{color:var(--mu);font-size:12px}
+table{width:100%;border-collapse:collapse}td,th{padding:8px;border-bottom:1px solid var(--ln);text-align:right}td:first-child,th:first-child{text-align:left}th{color:var(--mu);font-weight:600;font-size:12px}
+.up{color:var(--wn)}.dn{color:var(--ok)}#msg{color:var(--mu)}.sc{overflow-x:auto}#app{display:none}.mu{color:var(--mu);font-size:12px}
+.tag{font-size:11px;background:#f2f2f2;border-radius:6px;padding:1px 6px;margin-right:6px;color:var(--mu)}
 </style>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="pdf.min.js"></script>
 <script src="https://www.gstatic.com/charts/loader.js"></script></head>
 <body>
-<h1>カード・銀行 支出管理</h1>
+<header class="hd"><h1>カード・銀行 支出管理</h1></header>
+<div class="wrap">
 <div id="login" class="pn"><p>Googleアカウントでログインしてください。</p><div id="gbtn"></div><p id="lmsg" style="color:var(--mu)"></p></div>
 <div id="app">
 <div class="bar">
@@ -46,6 +53,7 @@ table{width:100%;border-collapse:collapse}td,th{padding:4px 8px;border-bottom:1p
   <div id="ai" style="white-space:pre-wrap"></div></div>
 <div class="pn"><h2>未分類(ルールに追加)</h2><table id="un"></table></div>
 </div>
+</div>
 <script>
 /* ===== 設定(公開されて問題ない値のみ) ===== */
 const API_URL='https://script.google.com/macros/s/AKfycbzwTHx8Kmm7pDn6TjggpOwbM5h4RsiytfnhXPOAyPXdid9_Io-i0Bs34AL4jItjzv1R9Q/exec';
@@ -54,6 +62,7 @@ const CLIENT_ID='675625482446-s57hjkhr33fgj9bk4e47qaha8bdup1qp.apps.googleuserco
 const $=i=>document.getElementById(i),yen=n=>(n<0?'-':'')+'¥'+Math.abs(Math.round(n)).toLocaleString();
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const msg=t=>$('msg').textContent=t;
+const PAL=['#ff0033','#ff5c7c','#ffa3b5','#4d4d4d','#8c8c8c','#c4c4c4','#1a9d5a','#f5a524','#2a78d6','#7c4dff','#00a3a3','#b8860b'];
 const KINDS=['変動費','固定費','別枠','収入','貯蓄','除外'];
 let token=null,chartsReady=false,unknown=[];
 google.charts.load('current',{packages:['corechart','sankey']});google.charts.setOnLoadCallback(()=>{chartsReady=true;if(token)load()});
@@ -66,10 +75,18 @@ async function call(action,...args){
 
 function initGsi(){
   if(!window.google||!google.accounts){return setTimeout(initGsi,200)}
-  google.accounts.id.initialize({client_id:CLIENT_ID,callback:r=>{token=r.credential;$('login').style.display='none';$('app').style.display='block';if(chartsReady)load()},auto_select:true});
+  google.accounts.id.initialize({client_id:CLIENT_ID,callback:r=>setToken(r.credential),auto_select:true});
   google.accounts.id.renderButton($('gbtn'),{theme:'filled_black',size:'large',locale:'ja'});
 }
-function logout(t){token=null;$('app').style.display='none';$('login').style.display='block';$('lmsg').textContent=t||'';if(window.google&&google.accounts)google.accounts.id.disableAutoSelect()}
+function logout(t){token=null;try{sessionStorage.removeItem(TK)}catch(e){}clearTimeout(renew);$('app').style.display='none';$('login').style.display='block';$('lmsg').textContent=t||'';if(window.google&&google.accounts)google.accounts.id.disableAutoSelect()}
+const TK='spend_idtoken';let renew=null;
+function jwtExp(t){try{return JSON.parse(atob(t.split('.')[1].replace(/-/g,'+').replace(/_/g,'/'))).exp*1000}catch(e){return 0}}
+// IDトークン(有効約1時間)をタブのsessionStorageに保持。期限の5分前にGoogleへ更新を依頼する
+function setToken(t){token=t;try{sessionStorage.setItem(TK,t)}catch(e){}
+  $('login').style.display='none';$('app').style.display='block';
+  clearTimeout(renew);renew=setTimeout(()=>{try{google.accounts.id.prompt()}catch(e){}},Math.max(jwtExp(t)-Date.now()-300000,10000));
+  if(chartsReady)load()}
+(function(){try{const s=sessionStorage.getItem(TK);if(s&&jwtExp(s)>Date.now()+60000)setToken(s)}catch(e){}})();
 initGsi();
 
 const d=new Date();$('to').value=d.toISOString().slice(0,7);
@@ -103,10 +120,10 @@ function draw(r){
   Object.keys(kind).forEach(t=>rows.push([t,'総支出',kind[t]]));
   if(rows.length){const dt=new google.visualization.DataTable();
     dt.addColumn('string','from');dt.addColumn('string','to');dt.addColumn('number','w');dt.addRows(rows);
-    new google.visualization.Sankey($('sk')).draw(dt,{sankey:{node:{label:{color:'#e6efe9',fontSize:13},colors:['#2fd3b0','#e5484d','#5b8def','#f0b429','#9b7bea','#4cc38a']},link:{colorMode:'gradient'}}});}
+    new google.visualization.Sankey($('sk')).draw(dt,{sankey:{node:{label:{color:'#1f1f1f',fontSize:13},colors:PAL},link:{colorMode:'gradient'}}});}
   const ms=[...new Set(r.months.map(x=>x.m))].sort(),cs=[...new Set(r.months.map(x=>x.c))];
   const dm=[['月',...cs]];ms.forEach(m=>dm.push([m,...cs.map(c=>(r.months.find(x=>x.m===m&&x.c===c)||{v:0}).v)]));
-  if(ms.length)new google.visualization.ColumnChart($('mc')).draw(google.visualization.arrayToDataTable(dm),{isStacked:true,backgroundColor:'transparent',legend:{textStyle:{color:'#e6efe9'}},hAxis:{textStyle:{color:'#7c8b85'}},vAxis:{textStyle:{color:'#7c8b85'},gridlines:{color:'#26332e'}}});
+  if(ms.length)new google.visualization.ColumnChart($('mc')).draw(google.visualization.arrayToDataTable(dm),{isStacked:true,colors:PAL,backgroundColor:'transparent',legend:{textStyle:{color:'#1f1f1f'}},hAxis:{textStyle:{color:'#767676'}},vAxis:{textStyle:{color:'#767676'},gridlines:{color:'#ececec'}}});
   let h='<tr><th>月</th><th>支出合計</th><th>前月比</th></tr>',prev=null;
   ms.forEach(m=>{const s=r.months.filter(x=>x.m===m).reduce((a,x)=>a+x.v,0),df=prev===null?null:s-prev;
     h+=`<tr><td>${esc(m)}</td><td>${yen(s)}</td><td class="${df>0?'up':'dn'}">${df===null?'-':(df>0?'+':'')+yen(df)}</td></tr>`;prev=s});
@@ -119,7 +136,7 @@ function draw(r){
 $('un').addEventListener('click',async e=>{const i=e.target.dataset.a;if(i===undefined)return;
   const c=document.querySelector(`[data-c="${i}"]`).value.trim();if(!c)return msg('カテゴリを入力してください');
   const u=unknown[i],k=prompt('一致させるキーワード(店名・内容の一部)',u.n.replace(/^(AP\/|QP\/)+/i,'').replace(/^(振込|口座振替)\d\s*/,'').replace(/\s/g,'').slice(0,8));if(!k)return;
-  msg('追加中…');try{await call('addRule',k,c,document.querySelector(`[data-t="${i}"]`).value,u.s);load()}catch(e){msg('追加に失敗しました')}});
+  msg('追加中…');try{const m=await call('addRule',k,c,document.querySelector(`[data-t="${i}"]`).value,u.s);if(m&&m.matched===0)alert('キーワードに一致する明細がありません。表記を確認してください。');load()}catch(e){msg('追加に失敗しました')}});
 $('bLoad').onclick=load;$('bOut').onclick=()=>logout('');
 $('bRecat').onclick=async()=>{msg('再分類中…');try{await call('recat');load()}catch(e){msg('失敗しました')}};
 $('bSv').onclick=async()=>{try{await call('saveSettings',$('sal').value,$('goal').value);load()}catch(e){msg('保存に失敗しました')}};
