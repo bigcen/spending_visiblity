@@ -5,29 +5,42 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline' https://accounts.google.com https://www.gstatic.com; worker-src 'self'; style-src 'self' 'unsafe-inline' https://accounts.google.com https://www.gstatic.com; connect-src 'self' https://script.google.com https://script.googleusercontent.com https://accounts.google.com; frame-src https://accounts.google.com; img-src 'self' data: https:; base-uri 'none'; form-action 'none'">
 <title>カード支出管理</title>
 <style>
-:root{--bg:#f2f2f2;--pn:#fff;--ln:#ececec;--tx:#1f1f1f;--mu:#767676;--ac:#ff0033;--wn:#d9480f;--ok:#1a9d5a}
+:root{--bg:#f5f6f8;--pn:#fff;--pn2:#f0f2f6;--ln:#e7e9ef;--tx:#1f2430;--mu:#6c7488;--ac:#4a63e7;--ac-t:#fff;--wn:#d9822b;--ok:#2a9d78;--sh:0 1px 2px rgba(20,30,60,.05),0 6px 20px rgba(20,30,60,.04)}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#10131a;--pn:#181c25;--pn2:#202530;--ln:#2a303d;--tx:#e4e7ee;--mu:#9099ad;--ac:#7f95ff;--ac-t:#0f1320;--wn:#f0a85c;--ok:#4cc29b;--sh:none}}
+:root[data-theme=dark]{--bg:#10131a;--pn:#181c25;--pn2:#202530;--ln:#2a303d;--tx:#e4e7ee;--mu:#9099ad;--ac:#7f95ff;--ac-t:#0f1320;--wn:#f0a85c;--ok:#4cc29b;--sh:none}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--tx);font:14px/1.6 "Noto Sans JP","Hiragino Sans","Yu Gothic UI",system-ui,sans-serif}
-.hd{background:var(--ac);color:#fff;padding:14px 16px;padding-top:calc(14px + env(safe-area-inset-top,0px));position:sticky;top:0;z-index:5}
-.hd h1{font-size:18px;font-weight:700;margin:0 auto;max-width:1100px}
-.wrap{max-width:1100px;margin:0 auto;padding:16px}
-h2{font-size:16px;margin:0 0 10px;font-weight:700}h3{font-size:13px;margin:14px 0 4px;color:var(--mu);font-weight:700}
-.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
-input,select{background:#fff;color:var(--tx);border:1px solid #dcdcdc;border-radius:12px;padding:8px 12px;font:inherit}
-button{cursor:pointer;border:1px solid var(--ac);color:var(--ac);background:#fff;border-radius:999px;padding:8px 16px;font:inherit;font-weight:600}
-#bLoad,#bImp,#bSv,#bAi{background:var(--ac);color:#fff}
-button:hover{opacity:.88}button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
-.pn{background:var(--pn);border-radius:16px;padding:16px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
-.kp{display:flex;flex-wrap:wrap;gap:24px}.kp b{display:block;font-size:24px;font-weight:700}.kp span{color:var(--mu);font-size:12px}
-table{width:100%;border-collapse:collapse}td,th{padding:8px;border-bottom:1px solid var(--ln);text-align:right}td:first-child,th:first-child{text-align:left}th{color:var(--mu);font-weight:600;font-size:12px}
-.up{color:var(--wn)}.dn{color:var(--ok)}#msg{color:var(--mu)}.sc{overflow-x:auto}#app{display:none}.mu{color:var(--mu);font-size:12px}
-.tag{font-size:11px;background:#f2f2f2;border-radius:6px;padding:1px 6px;margin-right:6px;color:var(--mu)}
+body{margin:0;background:var(--bg);color:var(--tx);font:14px/1.65 "Noto Sans JP","Hiragino Sans","Yu Gothic UI",system-ui,sans-serif;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased}
+.hd{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--ln);padding:12px 16px;padding-top:calc(12px + env(safe-area-inset-top,0px))}
+.hi{max-width:1080px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.hd h1{font-size:16px;font-weight:600;margin:0;letter-spacing:.02em;display:flex;align-items:center;gap:10px}
+.dot{width:10px;height:10px;border-radius:50%;background:linear-gradient(135deg,var(--ac),var(--ok))}
+.wrap{max-width:1080px;margin:0 auto;padding:20px 16px 48px}
+h2{font-size:15px;margin:0 0 12px;font-weight:600}h3{font-size:12px;margin:18px 0 6px;color:var(--mu);font-weight:600;letter-spacing:.04em}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:14px}
+input,select{background:var(--pn);color:var(--tx);border:1px solid var(--ln);border-radius:10px;padding:8px 12px;font:inherit}
+input::placeholder{color:var(--mu)}
+button{cursor:pointer;border:1px solid var(--ln);color:var(--tx);background:var(--pn);border-radius:10px;padding:8px 14px;font:inherit;font-weight:500;transition:background .15s,border-color .15s}
+button:hover{background:var(--pn2)}
+#bLoad,#bImp,#bSv,#bAi{background:var(--ac);color:var(--ac-t);border-color:var(--ac)}#bLoad:hover,#bImp:hover,#bSv:hover,#bAi:hover{filter:brightness(1.06);background:var(--ac)}
+#bTheme{padding:6px 10px;color:var(--mu)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+.pn{background:var(--pn);border:1px solid var(--ln);border-radius:14px;padding:18px;margin-bottom:14px;box-shadow:var(--sh)}
+.kp{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px}
+.kp>div{background:var(--pn);border:1px solid var(--ln);border-radius:14px;padding:14px 16px;box-shadow:var(--sh)}
+.kp b{display:block;font-size:22px;font-weight:600;letter-spacing:-.01em}.kp span{color:var(--mu);font-size:12px}
+table{width:100%;border-collapse:collapse}td,th{padding:9px 8px;border-bottom:1px solid var(--ln);text-align:right}td:first-child,th:first-child{text-align:left}
+th{color:var(--mu);font-weight:500;font-size:12px}tr:last-child td{border-bottom:0}tbody tr:hover td,#un tr:hover td{background:var(--pn2)}
+.up{color:var(--wn)}.dn{color:var(--ok)}#msg{color:var(--mu);font-size:13px}.sc{overflow-x:auto}#app{display:none}.mu{color:var(--mu);font-size:12px}
+.tag{font-size:11px;background:var(--pn2);border-radius:6px;padding:1px 7px;margin-right:8px;color:var(--mu)}
+#it tr[data-k]{cursor:pointer}#it tr.sel td{background:var(--pn2)}.bb{height:5px;border-radius:3px;background:var(--ac);opacity:.55;margin-top:3px;min-width:2px}
+.on{background:var(--ac)!important;color:var(--ac-t)!important;border-color:var(--ac)!important}
+@media (max-width:640px){.wrap{padding:14px 12px 40px}.pn{padding:14px}td,th{padding:8px 4px}}
 </style>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="pdf.min.js"></script>
 <script src="https://www.gstatic.com/charts/loader.js"></script></head>
 <body>
-<header class="hd"><h1>カード・銀行 支出管理</h1></header>
+<header class="hd"><div class="hi"><h1><span class="dot"></span>カード・銀行 支出管理</h1><button id="bTheme" aria-label="表示テーマの切り替え" title="ライト/ダーク切り替え">◐</button></div></header>
 <div class="wrap">
 <div id="login" class="pn"><p>Googleアカウントでログインしてください。</p><div id="gbtn"></div><p id="lmsg" style="color:var(--mu)"></p></div>
 <div id="app">
@@ -40,18 +53,24 @@ table{width:100%;border-collapse:collapse}td,th{padding:8px;border-bottom:1px so
   <button id="bOut">ログアウト</button>
   <span id="msg"></span>
 </div>
-<div class="pn kp" id="kp"></div>
+<div class="kp" id="kp"></div>
 <div class="pn"><h2>支出の目安と見直しポイント</h2><div id="plan"></div></div>
 <div class="pn sc"><h2>支出の流れ(カテゴリ → 区分 → 総支出)</h2><div id="sk" style="min-width:640px;height:380px"></div></div>
 <div class="pn sc"><h2>月別の推移(支出)</h2><div id="mc" style="min-width:640px;height:300px"></div><table id="mt"></table></div>
-<div class="pn sc"><h2>月次の収支</h2><table id="fl"></table>
-  <p class="mu">カードは請求月、銀行は日付の月で集計。「除外」はカード引落・自己宛振込・大口の現金引出など、二重計上を避けるために支出に含めないものです。</p></div>
+<div class="pn"><h2>月ごとの収入と支出</h2><div class="sc"><div id="cf" style="min-width:560px;height:300px"></div></div><div class="sc"><table id="cft"></table></div>
+  <p class="mu">支払月ベースで集計します。カードは請求の翌月(引落月)の支出として数え、明細を取り込んでいない月は銀行のカード引落額で補います。カード引落そのものは二重に数えません。</p></div>
+<div class="pn"><h2>項目別・タグ別の支出(取引は1回だけ集計)</h2>
+  <div class="bar"><button id="vM" class="on">加盟店(類似名を統合)</button><button id="vT">タグ</button></div>
+  <div id="uq" class="mu" style="margin-bottom:8px"></div><div class="sc"><table id="it"></table></div>
+  <h3 id="sh"></h3><div class="sc"><div id="sc2" style="min-width:560px;height:260px"></div></div><p id="sv" class="mu"></p>
+  <p class="mu">カードは請求月、銀行は日付の月で集計。行を押すと、その項目の月別推移を表示します。</p></div>
+<div class="pn"><h2>DB確認</h2><div class="bar"><button id="bAna">解析を再実行(類似項目・タグ)</button></div><div id="au"></div></div>
 <div class="pn"><h2>給与と目標貯金</h2>
   <div class="bar"><label>月給 <input id="sal" type="number" step="1000" placeholder="空欄=銀行の給与入金の平均"></label><label>目標貯金/月 <input id="goal" type="number" step="1000"></label><button id="bSv">保存</button></div></div>
 <div class="pn"><h2>AIの節約提案</h2>
   <div class="bar"><button id="bAi">提案を作成</button><span class="mu">送信するのはカテゴリ別の集計値のみ(店名・明細・給与の実額は送りません)</span></div>
   <div id="ai" style="white-space:pre-wrap"></div></div>
-<div class="pn"><h2>未分類(ルールに追加)</h2><table id="un"></table></div>
+<div class="pn"><h2>未分類(ルールに追加) <span id="unh" class="mu"></span></h2><table id="un"></table></div>
 </div>
 </div>
 <script>
@@ -62,7 +81,9 @@ const CLIENT_ID='675625482446-s57hjkhr33fgj9bk4e47qaha8bdup1qp.apps.googleuserco
 const $=i=>document.getElementById(i),yen=n=>(n<0?'-':'')+'¥'+Math.abs(Math.round(n)).toLocaleString();
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const msg=t=>$('msg').textContent=t;
-const PAL=['#ff0033','#ff5c7c','#ffa3b5','#4d4d4d','#8c8c8c','#c4c4c4','#1a9d5a','#f5a524','#2a78d6','#7c4dff','#00a3a3','#b8860b'];
+const PAL=['#5b74ee','#8aa0f7','#b8c5fb','#34a583','#86d0b4','#f0b45a','#e8897a','#9a7fd8','#52b8cc','#a0a8ba','#cdb184','#dd94b8'];
+function th(){const s=getComputedStyle(document.documentElement),g=n=>s.getPropertyValue(n).trim();return{tx:g('--tx'),mu:g('--mu'),ln:g('--ln'),pal:PAL}}
+let lastData=null,unkAll=false;
 const KINDS=['変動費','固定費','別枠','収入','貯蓄','除外'];
 let token=null,chartsReady=false,unknown=[];
 google.charts.load('current',{packages:['corechart','sankey']});google.charts.setOnLoadCallback(()=>{chartsReady=true;if(token)load()});
@@ -92,8 +113,8 @@ initGsi();
 const d=new Date();$('to').value=d.toISOString().slice(0,7);
 const p0=new Date(d.getFullYear(),d.getMonth()-12,1);$('from').value=p0.getFullYear()+'-'+String(p0.getMonth()+1).padStart(2,'0');
 
-async function load(){if(!chartsReady||!token)return;msg('読み込み中…');
-  try{const [r,p]=await Promise.all([call('getData',$('from').value,$('to').value),call('getPlan',$('from').value,$('to').value)]);draw(r);drawPlan(p);msg('')}catch(e){console.error(e);msg('読み込みに失敗しました')}}
+async function load(note){if(!chartsReady||!token)return;msg('読み込み中…');
+  try{const f=$('from').value,t=$('to').value;const [r,p,ins,cf]=await Promise.all([call('getData',f,t),call('getPlan',f,t),call('getInsights',f,t),call('getCashflow',f,t)]);draw(r);drawPlan(p);drawInsights(ins);drawCash(cf);msg(note||'')}catch(e){console.error(e);msg('読み込みに失敗しました')}}
 
 function drawPlan(p){
   if(!p.salary){$('plan').innerHTML='月給を保存するか、銀行明細(給与の入金)を取り込むと、支出の目安を表示します。';return}
@@ -113,6 +134,7 @@ function drawPlan(p){
   <p class="mu">集計: カード${p.nCard}か月 / 銀行${p.nBank}か月の月平均(取引の少ない月は除外)。</p>`}
 
 function draw(r){
+  lastData=r;const T=th();
   const tot=r.cats.reduce((a,x)=>a+x.v,0),by=t=>r.cats.filter(x=>x.t===t).reduce((a,x)=>a+x.v,0);
   $('kp').innerHTML=`<div><b>${yen(tot)}</b><span>支出合計(期間)</span></div><div><b>${yen(by('固定費'))}</b><span>固定費</span></div><div><b>${yen(by('変動費'))}</b><span>変動費</span></div><div><b>${yen(by('別枠'))}</b><span>別枠(分割・ローン・利息)</span></div>`;
   const rows=[],kind={};
@@ -120,27 +142,60 @@ function draw(r){
   Object.keys(kind).forEach(t=>rows.push([t,'総支出',kind[t]]));
   if(rows.length){const dt=new google.visualization.DataTable();
     dt.addColumn('string','from');dt.addColumn('string','to');dt.addColumn('number','w');dt.addRows(rows);
-    new google.visualization.Sankey($('sk')).draw(dt,{sankey:{node:{label:{color:'#1f1f1f',fontSize:13},colors:PAL},link:{colorMode:'gradient'}}});}
+    new google.visualization.Sankey($('sk')).draw(dt,{sankey:{node:{label:{color:T.tx,fontSize:13},colors:T.pal},link:{colorMode:'gradient'}}});}
   const ms=[...new Set(r.months.map(x=>x.m))].sort(),cs=[...new Set(r.months.map(x=>x.c))];
   const dm=[['月',...cs]];ms.forEach(m=>dm.push([m,...cs.map(c=>(r.months.find(x=>x.m===m&&x.c===c)||{v:0}).v)]));
-  if(ms.length)new google.visualization.ColumnChart($('mc')).draw(google.visualization.arrayToDataTable(dm),{isStacked:true,colors:PAL,backgroundColor:'transparent',legend:{textStyle:{color:'#1f1f1f'}},hAxis:{textStyle:{color:'#767676'}},vAxis:{textStyle:{color:'#767676'},gridlines:{color:'#ececec'}}});
+  if(ms.length)new google.visualization.ColumnChart($('mc')).draw(google.visualization.arrayToDataTable(dm),{isStacked:true,colors:T.pal,backgroundColor:'transparent',legend:{textStyle:{color:T.tx}},hAxis:{textStyle:{color:T.mu}},vAxis:{textStyle:{color:T.mu},gridlines:{color:T.ln}}});
   let h='<tr><th>月</th><th>支出合計</th><th>前月比</th></tr>',prev=null;
   ms.forEach(m=>{const s=r.months.filter(x=>x.m===m).reduce((a,x)=>a+x.v,0),df=prev===null?null:s-prev;
     h+=`<tr><td>${esc(m)}</td><td>${yen(s)}</td><td class="${df>0?'up':'dn'}">${df===null?'-':(df>0?'+':'')+yen(df)}</td></tr>`;prev=s});
   $('mt').innerHTML=h;
-  $('fl').innerHTML='<tr><th>月</th><th>収入</th><th>固定費</th><th>変動費</th><th>別枠</th><th>貯蓄・投資</th><th>除外</th></tr>'+r.flows.map(f=>`<tr><td>${esc(f.m)}</td><td>${yen(f['収入'])}</td><td>${yen(f['固定費'])}</td><td>${yen(f['変動費'])}</td><td>${yen(f['別枠'])}</td><td>${yen(f['貯蓄'])}</td><td>${yen(f['除外'])}</td></tr>`).join('');
   const s=r.settings;$('sal').value=s.salary||'';$('goal').value=s.goal||'';
-  unknown=r.unknown;
-  $('un').innerHTML=unknown.length?unknown.map((u,i)=>`<tr><td><span class="tag">${u.s==='bank'?'銀行':'カード'}</span>${esc(u.n)}</td><td>${yen(u.v)}</td><td><input data-c="${i}" placeholder="カテゴリ" size="8"> <select data-t="${i}">${KINDS.map(k=>`<option>${k}</option>`).join('')}</select> <button data-a="${i}">追加</button></td></tr>`).join(''):'<tr><td>未分類はありません</td></tr>';
+  unknown=r.unknown;unkAll=false;drawUnk(r.unknownTotal);
 }
-$('un').addEventListener('click',async e=>{const i=e.target.dataset.a;if(i===undefined)return;
+function drawUnk(tot){
+  const shown=unkAll?unknown:unknown.slice(0,20);
+  if(tot)$('unh').textContent=`全${tot.n}件 / ${yen(tot.v)}`;
+  $('un').innerHTML=unknown.length?shown.map((u,i)=>`<tr><td><span class="tag">${u.s==='bank'?'銀行':'カード'}</span>${esc(u.n)}</td><td>${yen(u.v)}</td><td><input data-c="${i}" placeholder="カテゴリ" size="8"> <select data-t="${i}">${KINDS.map(k=>`<option>${k}</option>`).join('')}</select> <button data-a="${i}">追加</button></td></tr>`).join('')+(unknown.length>shown.length?`<tr><td colspan="3" style="text-align:center"><button id="bMore">さらに表示(残り${unknown.length-shown.length}件)</button></td></tr>`:''):'<tr><td>未分類はありません</td></tr>'}
+$('un').addEventListener('click',async e=>{if(e.target.id==='bMore'){unkAll=true;drawUnk();return}const i=e.target.dataset.a;if(i===undefined)return;
   const c=document.querySelector(`[data-c="${i}"]`).value.trim();if(!c)return msg('カテゴリを入力してください');
   const u=unknown[i],k=prompt('一致させるキーワード(店名・内容の一部)',u.n.replace(/^(AP\/|QP\/)+/i,'').replace(/^(振込|口座振替)\d\s*/,'').replace(/\s/g,'').slice(0,8));if(!k)return;
   msg('追加中…');try{const m=await call('addRule',k,c,document.querySelector(`[data-t="${i}"]`).value,u.s);if(m&&m.matched===0)alert('キーワードに一致する明細がありません。表記を確認してください。');load()}catch(e){msg('追加に失敗しました')}});
-$('bLoad').onclick=load;$('bOut').onclick=()=>logout('');
+(function(){try{const t=localStorage.getItem('spend_theme');if(t)document.documentElement.dataset.theme=t}catch(e){}})();
+$('bTheme').onclick=()=>{const de=document.documentElement,cur=de.dataset.theme||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'),nx=cur==='dark'?'light':'dark';
+  de.dataset.theme=nx;try{localStorage.setItem('spend_theme',nx)}catch(e){}if(lastData&&chartsReady)draw(lastData)};
+$('bLoad').onclick=()=>load();$('bOut').onclick=()=>logout('');
 $('bRecat').onclick=async()=>{msg('再分類中…');try{await call('recat');load()}catch(e){msg('失敗しました')}};
 $('bSv').onclick=async()=>{try{await call('saveSettings',$('sal').value,$('goal').value);load()}catch(e){msg('保存に失敗しました')}};
 $('bAi').onclick=async()=>{$('ai').textContent='作成中…';try{$('ai').textContent=await call('getAdvice',$('from').value,$('to').value)}catch(e){$('ai').textContent='提案の作成に失敗しました: '+e.message}};
+
+
+/* ===== 月ごとの収入と支出 / 項目別・タグ別 / DB確認 ===== */
+let INS=null,view='m',sel=null;
+const pct=x=>x==null?'-':Math.round(x*100)+'%';
+function drawCash(c){const T=th(),rows=c.rows;
+  if(rows.length)new google.visualization.ColumnChart($('cf')).draw(google.visualization.arrayToDataTable([['月','収入','支出']].concat(rows.map(r=>[r.m,r.income,r.spend]))),{colors:[T.pal[3],T.pal[5]],backgroundColor:'transparent',legend:{position:'top',textStyle:{color:T.tx}},hAxis:{textStyle:{color:T.mu}},vAxis:{textStyle:{color:T.mu},gridlines:{color:T.ln}}});
+  $('cft').innerHTML='<tr><th>月</th><th>収入</th><th>支出</th><th>支出/収入</th><th>貯蓄・投資</th><th>残り</th><th>備考</th></tr>'+rows.map(r=>`<tr><td>${esc(r.m)}</td><td>${yen(r.income)}</td><td>${yen(r.spend)}</td><td class="${r.ratio>0.9?'up':''}">${pct(r.ratio)}</td><td>${yen(r.saving)}</td><td class="${r.left<0?'up':'dn'}">${r.income?yen(r.left):'-'}</td><td style="text-align:left" class="mu">${esc(r.note)}</td></tr>`).join('')}
+function drawInsights(ins){INS=ins;sel=null;const u=ins.uniq;
+  $('uq').innerHTML=`取引 ${u.rows}件(1件ずつ重複なく集計) / 総額 <b>${yen(u.total)}</b> / 加盟店 ${u.merchants}件(類似名を統合。統合前の店名 ${u.names}件) / ${u.months}か月`;
+  renderItems();drawAudit(ins.audit)}
+function renderItems(){if(!INS)return;
+  const list=view==='m'?INS.merchants:INS.tags,u=INS.uniq,mx=Math.max(1,...list.map(x=>x.v)),T=th();
+  $('it').innerHTML='<tr><th>'+(view==='m'?'加盟店':'タグ')+'</th><th>回数</th><th>合計</th><th>月平均</th><th>割合</th></tr>'+list.map((x,i)=>`<tr data-k="${i}" class="${sel===i?'sel':''}"><td>${esc(x.k)}<div class="bb" style="width:${Math.round(x.v/mx*100)}%"></div></td><td>${x.n}</td><td>${yen(x.v)}</td><td>${yen(x.v/Math.max(1,u.months))}</td><td>${(x.v/Math.max(1,u.total)*100).toFixed(1)}%</td></tr>`).join('');
+  let title,data;
+  if(sel!==null){const x=list[sel];title=`「${x.k}」の月別`;data=[['月','金額']].concat(INS.monthly.map(m=>[m.m,x.mon[m.m]||0]))}
+  else{title='月ごとの消費(重複除外・全体)';data=[['月','金額']].concat(INS.monthly.map(m=>[m.m,m.v]))}
+  $('sh').textContent=title;
+  if(data.length>1)new google.visualization.ColumnChart($('sc2')).draw(google.visualization.arrayToDataTable(data),{legend:'none',colors:[T.pal[0]],backgroundColor:'transparent',hAxis:{textStyle:{color:T.mu}},vAxis:{textStyle:{color:T.mu},gridlines:{color:T.ln}}});
+  $('sv').textContent=(sel!==null&&view==='m')?'含まれる表記: '+list[sel].vars.join(' / '):(view==='t'?'タグは1件の取引に複数付きます。タグ別の合計は足し合わせると総額を超えますが、総額は取引ごとに1回だけ数えています。':'')}
+function drawAudit(a){
+  const dup=(t,l)=>l.length?`<h3>${t}: 完全一致の重複 ${l.length}グループ</h3><table>${l.map(x=>`<tr><td>${esc(x.date)} ${esc(x.name)}</td><td>${yen(x.amount)}</td><td>${x.n}件</td></tr>`).join('')}</table>`:`<p class="mu">${t}: 完全一致の重複はありません。</p>`;
+  const pay=a.pay.length?`<h3>銀行のカード引落とカード明細の照合</h3><table><tr><th>引落日</th><th>引落額</th><th>対象の請求月</th><th>カード明細</th></tr>${a.pay.map(p=>`<tr><td>${esc(p.date)}</td><td>${yen(p.amount)}</td><td>${esc(p.month)}</td><td>${p.detail===null?'<span class="mu">明細なし(引落額で補完)</span>':(p.detail===p.amount?'<span class="dn">一致</span>':'<span class="up">差額 '+yen(p.amount-p.detail)+'</span>')}</td></tr>`).join('')}</table>`:'';
+  $('au').innerHTML=`<p>カード ${a.card.rows}件 / 銀行 ${a.bank.rows}件 / 未分類 ${a.uncls}件</p>`+dup('カード',a.card.dups)+dup('銀行',a.bank.dups)+pay+'<p class="mu">同じ日・同じ店・同じ金額の明細は、正当な複数回の購入のこともあるため、自動では削除しません。</p>'}
+$('it').addEventListener('click',e=>{const tr=e.target.closest('tr[data-k]');if(!tr)return;const i=+tr.dataset.k;sel=sel===i?null:i;renderItems()});
+$('vM').onclick=()=>{view='m';sel=null;$('vM').classList.add('on');$('vT').classList.remove('on');renderItems()};
+$('vT').onclick=()=>{view='t';sel=null;$('vT').classList.add('on');$('vM').classList.remove('on');renderItems()};
+$('bAna').onclick=async()=>{msg('解析中…');try{const r=await call('analyze');load(`解析 ${r.rows}件 → 加盟店 ${r.merchants}件(統合前の店名 ${r.names}件)`)}catch(e){msg('解析に失敗しました')}};
 
 /* ===== PDF解析(ブラウザ内で完結。PDFそのものはどこにも送信しません) ===== */
 function p2_(n){return n<10?'0'+n:''+n}
@@ -237,16 +292,16 @@ $('bImp').onclick=async()=>{const f=$('f').files[0];if(!f)return msg('PDFを選�
   if(f.size>8*1024*1024)return msg('ファイルが大きすぎます(8MBまで)');
   msg('読み取り中…');
   try{
-    const pages=await pdfPages(f),kind=detect(pages);
+    let note='';const pages=await pdfPages(f),kind=detect(pages);
     if(kind==='bank'){
       const r=parseBank_(pages);if(!r.rows.length)return msg('銀行明細を読み取れませんでした');
       const x=await call('importBank',r.rows);
-      msg('銀行: '+res(x)+' / 残高チェック '+(r.chainBad||r.bad?`不一致${r.chainBad}件・読取不可${r.bad}件`:'OK'));
+      note='銀行: '+res(x)+' / 残高チェック '+(r.chainBad||r.bad?`不一致${r.chainBad}件・読取不可${r.bad}件`:'OK');
     }else if(kind==='card'){
       const r=parseRows_(cardText(pages));if(!r.rows.length)return msg('明細を読み取れませんでした');
       msg(`${r.rows.length}件を読み取り、取り込み中…`);
-      const x=await call('importRows',r.rows);msg('カード: '+res(x));
+      const x=await call('importRows',r.rows);note='カード: '+res(x);
     }else return msg('対応していないPDFです(カード利用明細・三菱UFJ銀行の入出金明細に対応)');
-    load();
+    load(note);
   }catch(e){console.error(e);msg('取り込みに失敗しました')}};
 </script></body></html>
