@@ -64,6 +64,8 @@ th{color:var(--mu);font-weight:500;font-size:12px}tr:last-child td{border-bottom
   <div id="uq" class="mu" style="margin-bottom:8px"></div><div class="sc"><table id="it"></table></div>
   <h3 id="sh"></h3><div class="sc"><div id="sc2" style="min-width:560px;height:260px"></div></div><p id="sv" class="mu"></p>
   <p class="mu">カードは請求月、銀行は日付の月で集計。行を押すと、その項目の月別推移を表示します。</p></div>
+<div class="pn"><h2>推定で分類した項目(確認・修正) <span id="inh" class="mu"></span></h2>
+  <p class="mu">あなたのルールに無いものを、店名辞書と類似名から自動で分類しました。合っていれば「確定」、違えばカテゴリを入れて「修正」を押すと、ルールとして保存されます。</p><div class="sc"><table id="inf"></table></div></div>
 <div class="pn"><h2>DB確認</h2><div class="bar"><button id="bAna">解析を再実行(類似項目・タグ)</button></div><div id="au"></div></div>
 <div class="pn"><h2>給与と目標貯金</h2>
   <div class="bar"><label>月給 <input id="sal" type="number" step="1000" placeholder="空欄=銀行の給与入金の平均"></label><label>目標貯金/月 <input id="goal" type="number" step="1000"></label><button id="bSv">保存</button></div></div>
@@ -178,7 +180,7 @@ function drawCash(c){const T=th(),rows=c.rows;
   $('cft').innerHTML='<tr><th>月</th><th>収入</th><th>支出</th><th>支出/収入</th><th>貯蓄・投資</th><th>残り</th><th>備考</th></tr>'+rows.map(r=>`<tr><td>${esc(r.m)}</td><td>${yen(r.income)}</td><td>${yen(r.spend)}</td><td class="${r.ratio>0.9?'up':''}">${pct(r.ratio)}</td><td>${yen(r.saving)}</td><td class="${r.left<0?'up':'dn'}">${r.income?yen(r.left):'-'}</td><td style="text-align:left" class="mu">${esc(r.note)}</td></tr>`).join('')}
 function drawInsights(ins){INS=ins;sel=null;const u=ins.uniq;
   $('uq').innerHTML=`取引 ${u.rows}件(1件ずつ重複なく集計) / 総額 <b>${yen(u.total)}</b> / 加盟店 ${u.merchants}件(類似名を統合。統合前の店名 ${u.names}件) / ${u.months}か月`;
-  renderItems();drawAudit(ins.audit)}
+  renderItems();drawAudit(ins.audit);drawInf(ins.inferred)}
 function renderItems(){if(!INS)return;
   const list=view==='m'?INS.merchants:INS.tags,u=INS.uniq,mx=Math.max(1,...list.map(x=>x.v)),T=th();
   $('it').innerHTML='<tr><th>'+(view==='m'?'加盟店':'タグ')+'</th><th>回数</th><th>合計</th><th>月平均</th><th>割合</th></tr>'+list.map((x,i)=>`<tr data-k="${i}" class="${sel===i?'sel':''}"><td>${esc(x.k)}<div class="bb" style="width:${Math.round(x.v/mx*100)}%"></div></td><td>${x.n}</td><td>${yen(x.v)}</td><td>${yen(x.v/Math.max(1,u.months))}</td><td>${(x.v/Math.max(1,u.total)*100).toFixed(1)}%</td></tr>`).join('');
@@ -192,10 +194,17 @@ function drawAudit(a){
   const dup=(t,l)=>l.length?`<h3>${t}: 完全一致の重複 ${l.length}グループ</h3><table>${l.map(x=>`<tr><td>${esc(x.date)} ${esc(x.name)}</td><td>${yen(x.amount)}</td><td>${x.n}件</td></tr>`).join('')}</table>`:`<p class="mu">${t}: 完全一致の重複はありません。</p>`;
   const pay=a.pay.length?`<h3>銀行のカード引落とカード明細の照合</h3><table><tr><th>引落日</th><th>引落額</th><th>対象の請求月</th><th>カード明細</th></tr>${a.pay.map(p=>`<tr><td>${esc(p.date)}</td><td>${yen(p.amount)}</td><td>${esc(p.month)}</td><td>${p.detail===null?'<span class="mu">明細なし(引落額で補完)</span>':(p.detail===p.amount?'<span class="dn">一致</span>':'<span class="up">差額 '+yen(p.amount-p.detail)+'</span>')}</td></tr>`).join('')}</table>`:'';
   $('au').innerHTML=`<p>カード ${a.card.rows}件 / 銀行 ${a.bank.rows}件 / 未分類 ${a.uncls}件</p>`+dup('カード',a.card.dups)+dup('銀行',a.bank.dups)+pay+'<p class="mu">同じ日・同じ店・同じ金額の明細は、正当な複数回の購入のこともあるため、自動では削除しません。</p>'}
+let INF=[];
+function drawInf(l){INF=l||[];$('inh').textContent=INF.length?`${INF.length}件`:'';
+  $('inf').innerHTML=INF.length?INF.map((x,i)=>`<tr><td><span class="tag">${x.s==='bank'?'銀行':'カード'}</span>${esc(x.k)}<div class="mu">${esc(x.c)} / ${esc(x.t)}</div></td><td>${yen(x.v)}</td><td><input data-ic="${i}" placeholder="${esc(x.c)}" size="8"> <select data-it="${i}">${KINDS.map(k=>`<option${k===x.t?' selected':''}>${k}</option>`).join('')}</select> <button data-ok="${i}">確定</button> <button data-fx="${i}">修正</button></td></tr>`).join(''):'<tr><td>推定で分類した項目はありません</td></tr>'}
+$('inf').addEventListener('click',async e=>{const ok=e.target.dataset.ok,fx=e.target.dataset.fx;if(ok===undefined&&fx===undefined)return;
+  const i=+(ok!==undefined?ok:fx),x=INF[i];let c=x.c,kind=x.t;
+  if(fx!==undefined){c=document.querySelector(`[data-ic="${i}"]`).value.trim();kind=document.querySelector(`[data-it="${i}"]`).value;if(!c)return msg('カテゴリを入力してください')}
+  msg('保存中…');try{await call('addRule',x.kw,c,kind,x.s);load()}catch(err){msg('保存に失敗しました')}});
 $('it').addEventListener('click',e=>{const tr=e.target.closest('tr[data-k]');if(!tr)return;const i=+tr.dataset.k;sel=sel===i?null:i;renderItems()});
 $('vM').onclick=()=>{view='m';sel=null;$('vM').classList.add('on');$('vT').classList.remove('on');renderItems()};
 $('vT').onclick=()=>{view='t';sel=null;$('vT').classList.add('on');$('vM').classList.remove('on');renderItems()};
-$('bAna').onclick=async()=>{msg('解析中…');try{const r=await call('analyze');load(`解析 ${r.rows}件 → 加盟店 ${r.merchants}件(統合前の店名 ${r.names}件)`)}catch(e){msg('解析に失敗しました')}};
+$('bAna').onclick=async()=>{msg('解析中…');try{const r=await call('analyze');load(`解析 ${r.rows}件 → 加盟店 ${r.merchants}件(統合前の店名 ${r.names}件) / 推定分類 ${r.inferred}件(類似名の引き継ぎ ${r.inherited}件) / 未分類 ${r.uncls}件`)}catch(e){msg('解析に失敗しました')}};
 
 /* ===== PDF解析(ブラウザ内で完結。PDFそのものはどこにも送信しません) ===== */
 function p2_(n){return n<10?'0'+n:''+n}
